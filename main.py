@@ -57,27 +57,6 @@ def create_prompt():
     )
     return prompt
 
-def create_prompt_architecture():
-    if generated_word_history:
-        exclusion_words = ", ".join(generated_word_history)
-        exclusion_prompt = f"次の単語は使わないでください：{exclusion_words}。"
-    else:
-        exclusion_prompt = ""
-
-    prompt = (
-        "あなたは日本建築史ワードウルフのゲームマスターです。"
-        "「大仏様」と「折衷様」や「蟇股」と「組物」のように、似た意味を持つ市民側の単語と人狼側の単語を考えてください。ただし、２つの単語は、片方からもう片方が推測されない程度の関連性のものにしてください。"
-        "単語は大学で日本建築について学んでいる人がわかるレベルにしてください。"
-        f"{exclusion_prompt}"
-        "\n以下形式のみで出力してください：\n"
-        "{\n"
-        "  \"citizen\": \"単語n\",\n"
-        "  \"werewlof\": \"単語m\",\n"
-        "  \"citizen-explanation\": \"説明n\",\n"
-        "  \"werewlof-explanation\": \"説明m\"\n"
-        "}"
-    )
-    return prompt
 
 # 単語ペア生成関数
 def generate_word_pair():
