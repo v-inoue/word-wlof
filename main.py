@@ -20,6 +20,9 @@ model = genai.GenerativeModel(
     
     generation_config={"response_mime_type": "application/json"}
 )
+generation_config = {
+  "temperature": 2.0, 
+}
 
 app = fastapi.FastAPI()
 
@@ -45,7 +48,7 @@ def create_prompt():
 
     prompt = (
         "# 指示\n"
-        "情報工学分野における用語を四つ生成してください。"
+        "情報工学分野から「web」や「ソフトウェア工学」、「AI」、「プログラミング言語」などの分野をランダムに選択し、用語を四つ生成してください。"
         "また、英単語の場合は（）で日本語もつけてください。"
         "# 出力用語の例\n"
         "['useState', 'useEffect', 'button', 'localstorage'],"
@@ -71,7 +74,7 @@ def generate_word_pair():
         "werewlof-explanation": []
     }
     prompt = create_prompt()
-    response = model.generate_content(prompt)
+    response = model.generate_content(prompt,generation_config=generation_config)
     output_text = response.text
 
     try:
