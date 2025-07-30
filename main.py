@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from collections import deque
 from pprint import pprint
 import random
+from google.generativeai import types
 
 # .env から APIキーを読み込み
 dotenv.load_dotenv()
@@ -22,8 +23,8 @@ model = genai.GenerativeModel(
 
 app = fastapi.FastAPI()
 
-# 履歴（最大30個）
-generated_word_history = deque(maxlen=30)
+# 履歴（最大10個）
+generated_word_history = deque(maxlen=10)
 
 # CORS 設定
 app.add_middleware(
@@ -43,16 +44,19 @@ def create_prompt():
         exclusion_prompt = ""
 
     prompt = (
-        "「useState」と「useEffect」や「ウォータフォール」と「アジャイル」、「ランダムフォレスト」と「ロジスティック回帰」のように、まず似た単語を四つ生成してください。"
-        "単語は情報工学分野の大学生レベルにしてください。"
+        "# 指示"
+        "情報工学分野における用語を四つ生成してください。"
         "また、英単語の場合は（）で日本語もつけてください。"
+        "# 出力用語の例"
+        "['useState', 'useEffect', 'button', 'localstorage'],"
+        "['ウォータフォール', 'アジャイル', 'スパイラル', 'XP'],"
+        "['ロジスティック回帰', 'ランダムフォレスト', '交差検証', 'グリッドサーチ']"
         f"{exclusion_prompt}"
         "\n以下形式のみで出力してください：\n"
         "{\n"
         "  \"domain\": \"分野\",\n"
         "  \"words\": [\"単語1\", \"単語2\", \"単語3\", \"単語4\"],\n"
         "  \"explanations\": [\"説明1\", \"説明2\", \"説明3\", \"説明4\"]\n"
-
         "}"
     )
     return prompt
@@ -76,6 +80,7 @@ def generate_word_pair():
         print("JSONデコードエラー:", e)
         return {"error": "Invalid JSON format in response"}
 
+    pprint(data)
     
 
     index1 = random.randint(0, 3)
@@ -90,7 +95,6 @@ def generate_word_pair():
     send_data["citizen-explanation"] = data["explanations"][index1]
     send_data["werewlof-explanation"] = data["explanations"][index2]
 
-    pprint(send_data)
 
     return send_data
 
