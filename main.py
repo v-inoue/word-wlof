@@ -10,7 +10,7 @@ from pprint import pprint
 import random
 from google.genai import types
 from pydantic import BaseModel
-
+from typing import List
 # .env から APIキーを読み込み
 dotenv.load_dotenv()
 
@@ -19,6 +19,7 @@ client = genai.Client()
 class RequestData(BaseModel):
     minLevel: int
     maxLevel: int
+    domain: List[str]
 
 
 app = fastapi.FastAPI()
@@ -36,9 +37,10 @@ app.add_middleware(
 )
 
 # プロンプト作成関数
-def create_prompt(difficulty_levels):
+def create_prompt(difficulty_levels, domain):
     # 難易度の選択肢
-   
+    domain_word = domain[random.randint(0, len(domain)-1)]
+    print(f"選択された分野: {domain_word}")
     print(f"選択された難易度: {difficulty_levels}")
     if generated_word_history:
         exclusion_words = ", ".join(generated_word_history)
@@ -48,7 +50,7 @@ def create_prompt(difficulty_levels):
 
     prompt = (
         "# 指示\n"
-        "情報工学分野から「web」や「ソフトウェア工学」、「AI」、「プログラミング言語」などの分野をランダムに選択し、用語を4つ生成してください。"
+        f"{domain_word}の分野に関する用語を4つ生成してください。"
         "さらに、選択した分野のサブ分野もランダムに選んでください。"
         "また、英単語の場合は（）で日本語もつけてください。"
         "単語の難易度を五段階のうち、"
@@ -72,7 +74,7 @@ def create_prompt(difficulty_levels):
 
 
 # 単語ペア生成関数
-def generate_word_pair(min_level, max_level):
+def generate_word_pair(min_level, max_level, domain):
     send_data = {
         "citizen": [],
         "werewlof": [],
@@ -82,7 +84,7 @@ def generate_word_pair(min_level, max_level):
         "level": int
     }
     difficulty_levels = random.randint(min_level, max_level)
-    prompt = create_prompt(difficulty_levels)
+    prompt = create_prompt(difficulty_levels,domain)
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt,
@@ -131,7 +133,8 @@ async def get_word_pair(request: RequestData):
     # リクエストデータから難易度を取得
     min_level = request.minLevel
     max_level = request.maxLevel
-    result = generate_word_pair(min_level, max_level)
+    domain = request.domain
+    result = generate_word_pair(min_level, max_level,domain)
     if "error" not in result:
         return result
     else:
